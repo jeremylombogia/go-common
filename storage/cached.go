@@ -180,6 +180,9 @@ func (c *CachedCollection) Delete(ctx context.Context, doc Document) error {
 }
 
 func (c *CachedCollection) Find(ctx context.Context, opt *QueryOpt, out interface{}) error {
+	if opt == nil {
+		return errors.New("missing query option")
+	}
 	if c.Driver == "mongo" {
 		return c.mongoFind(ctx, opt, out)
 	}
@@ -193,6 +196,8 @@ func (c *CachedCollection) dsFind(ctx context.Context, opt *QueryOpt, out interf
 	iter := q.Get(ctx)
 	defer iter.Stop()
 
+	skip := opt.Skip
+
 	docs := make([]map[string]interface{}, 0)
 	for {
 		d := make(map[string]interface{})
@@ -201,6 +206,11 @@ func (c *CachedCollection) dsFind(ctx context.Context, opt *QueryOpt, out interf
 			break
 		} else if err != nil {
 			return err
+		}
+
+		if skip > 0 {
+			skip--
+			continue
 		}
 
 		docs = append(docs, d)

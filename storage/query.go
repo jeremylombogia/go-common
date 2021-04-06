@@ -13,6 +13,7 @@ import (
 type QueryOpt struct {
 	Limit    int
 	Skip     int
+	Page     int
 	OrderBy  string
 	IsAscend bool
 	Filter   []FilterOpt
@@ -33,6 +34,10 @@ func (q *QueryOpt) ToMongoFilter() (bson.M, *options.FindOptions) {
 	d := bson.M{}
 	for _, s := range q.Filter {
 		d[s.Field] = s.ToMongoM()
+	}
+
+	if q.Page > 0 && q.Limit > 0 {
+		q.Skip = q.Page * q.Limit
 	}
 
 	opt := options.Find()
@@ -57,6 +62,14 @@ func (q *QueryOpt) ToDocstoreQuery(query *docstore.Query) {
 			}
 			query.Where(docstore.FieldPath(f.Field), f.Ops, f.Value)
 		}
+	}
+
+	if q.Page > 0 && q.Limit > 0 {
+		q.Skip = q.Page * q.Limit
+	}
+
+	if q.Skip > 0 && q.Limit > 0 {
+		q.Limit += q.Skip
 	}
 
 	if q.Limit > 0 {
