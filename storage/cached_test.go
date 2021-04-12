@@ -128,4 +128,17 @@ func TestModelFind(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 5, len(sout))
 
+	ds := make([]interface{}, 0)
+	for _, p := range out {
+		ds = append(ds, &Person{ID: p.ID})
+	}
+
+	err = rep.BulkGet(ctx, ds)
+	assert.Nil(t, err)
+	assert.Equal(t, 20, len(ds))
+	for i, d := range ds {
+		assert.Equal(t, out[i].Name, d.(*Person).Name)
+		assert.Equal(t, out[i].Age, d.(*Person).Age)
+	}
+
 }

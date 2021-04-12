@@ -96,6 +96,24 @@ func (c *CachedCollection) BulkCreate(ctx context.Context, docs []Document) erro
 	return acl.Do(ctx)
 }
 
+func (c *CachedCollection) BulkGet(ctx context.Context, out []interface{}) error {
+	if len(out) == 0 {
+		return errors.New("[CachedCollection] empty documents placeholder")
+	}
+
+	act := c.Collection.Actions()
+
+	for _, d := range out {
+		act = act.Get(d)
+	}
+
+	if err := act.Do(ctx); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *CachedCollection) Get(ctx context.Context, out Document) error {
 	if out.GetID() == "" {
 		return errors.New("[CachedCollection] missing id value")
